@@ -57,7 +57,7 @@ DrawSampleswEscape <- function(par.simu)
   sample.data <- with( sample.data,
                       as.CLonglineData(YEAR, AREA, n=N, n1= N1, n2=N2, nb=N-N1-N2-Nempty, ne=Nempty, p=P)
                       )
-  print(sample.data)
+##  print(sample.data)
   return(sample.data)
 }
 
@@ -94,7 +94,7 @@ DrawSampleswEscape2 <- function(lambda1, lambda2, Y, type="witouht", percent=0.1
   sample.data <- with( sample.data,
                       as.CLonglineData(YEAR, AREA, n=N, n1= N1, n2=N2, nb=N-N1-N2-Nempty, ne=Nempty, p=P)
                       )
-  print(sample.data)
+##  print(sample.data)
   return(sample.data)
 }
 
