@@ -63,7 +63,7 @@ DrawSampleswEscape <- function(par.simu)
 
 ### Draw samples according to the complete exponential and allow escapement
 ### input is real design
-DrawSampleswEscape2 <- function(lambda1, lambda2, Y, type="witouht", percent=0.1, pref=1)
+DrawSampleswEscape2 <- function(lambda1, lambda2, Y, type="without", percent=0.1, pref=1)
 {
   
   sample.data <- DrawSamples(lambda1, lambda2, Y$P , Y$N, area=05, year=2020) 
@@ -84,7 +84,7 @@ DrawSampleswEscape2 <- function(lambda1, lambda2, Y, type="witouht", percent=0.1
   else if (type=="preferential")
   {
     n1.escape <- rbinom( nrow(sample.data), sample.data$N1, prob=percent)
-    n2.escape <- rbinom( nrow(sample.data), sample.data$N2, prob=preffacteur*percent)
+    n2.escape <- rbinom( nrow(sample.data), sample.data$N2, prob=pref*percent)
     sample.data$Nempty <- n1.escape + n2.escape
     	
     sample.data$N1 <- sample.data$N1 -n1.escape

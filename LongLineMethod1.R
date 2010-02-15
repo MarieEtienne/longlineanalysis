@@ -9,7 +9,7 @@
 
 
 ## functions to be minimized to achieve non linear regression
-ecart.exponential.model <- function(lambda, C, N, P)
+  ecart.exponential.model <- function(lambda, C, N, P)
   {
     return(sqrt(sum((C-N*(1-exp(-lambda*P)))^2)))
   }
@@ -71,61 +71,47 @@ AnalysisNLR <- function( subdata, tune1 = 3)
 
 ## main function for non linear regression estimations 2 species only
 AnalysisNLR2 <- function( subdata, tune1 = 3)
-{
+{ 
+  ### Global estimation
+  ## lambda.tot
+  C.tot <- with(subdata, N-N0)
 
-  if(!is.CLonglineData(subdata))
-    {
-      stop("Parameter ", subdata," of function AnalysisNLR2 is not of class CLonglineData")
-    }
-  else
-    {
-      
-### Global estimation
-      ## lambda.tot
-      C.tot <- with(subdata, N-Nb)
-      
-      lambda.cur <- 0.2
-      value.cur <- ecart.exponential.model(0.2, C=C.tot, N=subdata$N, P=subdata$P)
-      iter <- 0
-      ok <- optimize(ecart.exponential.model, interval=c(0.000001,0.2), C=C.tot, N=subdata$N, P=subdata$P)
-      
-      while(iter < 10 & value.cur > ok$objective)
-        {
-          iter <- iter + 1
-          value.cur <- ok$objective
-          lambda.cur <- ok$minimum
-          ok <- optimize(ecart.exponential.model, interval=c(lambda.cur-tune1 * lambda.cur/10,lambda.cur+tune1 * lambda.cur/10),  C=C.tot, N=subdata$N, P=subdata$P)    
-                                        #print(paste( " Objective=", ok$objective, ", Minimum=", ok$minimum, sep="")) 
-        }
-      
-### Estimation species by species
-      ## the function to use with package nleqslv
-      ## for one value of lambda it returns the value of the system
+  lambda.cur <- 0.2
+  value.cur <- ecart.exponential.model(0.2, C=C.tot, N=subdata$N, P=subdata$P)
+  iter <- 0
+  ok <- optimize(ecart.exponential.model, interval=c(0.000001,0.2), C=C.tot, N=subdata$N, P=subdata$P)
+  
+  while(iter < 10 & value.cur > ok$objective)
+  {
+    iter <- iter + 1
+    value.cur <- ok$objective
+    lambda.cur <- ok$minimum
+    ok <- optimize(ecart.exponential.model, interval=c(lambda.cur-tune1 * lambda.cur/10,lambda.cur+tune1 * lambda.cur/10),  C=C.tot, N=subdata$N, P=subdata$P)    
+    #print(paste( " Objective=", ok$objective, ", Minimum=", ok$minimum, sep="")) 
+  }
+	
+  ### Estimation species by species
+  # the function to use with package nleqslv
+  # for one value of lambda it returns the value of the system
 
-      nb.col <- dim(subdata)[2]
-      if(sum(subdata$Ne)>0)
-        {
-          Capt <- matrix(c(subdata$N1,subdata$N2, subdata$Ne), ncol=3)
-        }else
-      {
-        Capt <- matrix(c(subdata$N1,subdata$N2), ncol=2)
-      }
-      nb.species <- dim(Capt)[2]
-      
-      lambda.cur <- rep(lambda.cur/nb.species,nb.species)
-      value.cur <- functionToOptim(lambda.cur,  C=Capt, N=subdata$N, P=subdata$P)
-      iter=0
-      res <- nlm(functionToOptim, lambda.cur, C=Capt, N=subdata$N, P=subdata$P)
-                                        #print(res$estimate)  
-	  if( sum(subdata$Ne)==0)
-	  {
-		res$estimate <- c(res$estimate,NA)
-		res$minimum <- c(res$value,NA)
-		res$gradient <- c(res$gradient,NA)
-	  }
-      return(list(lambda=res$estimate, value=res$minimum, grad=res$gradient))  
-    }
+  nb.col <- dim(subdata)[2]
+  if(sum(subdata$Nempty)>0)
+    {
+      Capt <- matrix(c(subdata$N1,subdata$N2, subdata$Nempty), ncol=3)
+    }else
+  {
+    Capt <- matrix(c(subdata$N1,subdata$N2), ncol=2)
+  }
+  nb.species <- dim(Capt)[2]
+  
+  lambda.cur <- rep(lambda.cur/nb.species,nb.species)
+  value.cur <- functionToOptim(lambda.cur,  C=Capt, N=subdata$N, P=subdata$P)
+  iter=0
+  res <- nlm(functionToOptim, lambda.cur, C=Capt, N=subdata$N, P=subdata$P)
+  #print(res$estimate)  
+  return(list(lambda=res$estimate, value=res$minimum, grad=res$gradient))  
 }
+
 ##Example
 #AnalysisNLR(longlineArea12Year2003)
 

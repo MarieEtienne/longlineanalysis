@@ -20,7 +20,7 @@ BootstrapAnalysis <- function(Y, M, file.out="Bootstrap.out")
   {
     ind.i<-sample(1:nb.data, nb.data, replace=TRUE)
     Ybis <- Y[ind.i,]
-    while( sum(Ybis$N1)== 0 & lost < 1000)
+    while( sum(Ybis$N1+Ybis$N2)== 0 & lost < 1000)
     {
       ind.i<-sample(1:nb.data, nb.data, replace=TRUE)
       lost <- lost+1
@@ -31,13 +31,13 @@ BootstrapAnalysis <- function(Y, M, file.out="Bootstrap.out")
       }
     mle.estimates[i,] <- AnalysisMLE(Ybis)$lambda
     swept[i] <- computeSweptArea(Ybis)
-    nlr.estimates[i,] <- AnalysisNLR2(Ybis)$lambda[c(1,2)]
+    nlr.estimates[i,] <- AnalysisNLR(Ybis)$lambda[c(1,2)]
 
     Ybis$N2 <- Ybis$N2+Ybis$Ne
     Ybis$Ne <- 0*Ybis$Ne
 
     mle.estimates.no[i,] <- AnalysisMLE(Ybis)$lambda
-    nlr.estimates.no[i,] <- AnalysisNLR2(Ybis)$lambda[c(1,2)]
+    nlr.estimates.no[i,] <- AnalysisNLR(Ybis)$lambda[c(1,2)]
     
   }
   ic=sort(mle.estimates[,1])[c(floor(M * 0.025), ceiling(M * 0.975))]

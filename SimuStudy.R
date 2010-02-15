@@ -9,45 +9,48 @@
 
 SimStudy <- function( file.in, forget.empty=0 )
   {
+
     par.simu <- ReadParameters(file.in)
     n.simu <- par.simu$n.simu
     
     file.out <- paste(strsplit(file.in,".init"), ".out", sep="")
     
     write.table(file=file.out, x=par.simu, sep=",", row.names=FALSE)
-    Add2File(x=c("","mle.lambda1", "mle.lambda2", "bayes.lambda1", "bayes.lambda2", "nlr.lambda1", "nlr.lambda2","nlr.lambdae"), file=file.out)
+    Add2File(x=c("","mle.lambda1", "mle.lambda2", "nlr.lambda1", "nlr.lambda2","nlr.lambdae", "sw"), file=file.out)
     
     for( i in 1:n.simu)
       {
+      if(i%%50==0) print(i)
         Y <- DrawSampleswEscape(par.simu=par.simu)
-        print(Y)
         ## if empty hooks are forgotten
         if(forget.empty==1)
           {
+            Y$Nb <- Y$Nb + Y$Ne
             Y$Ne <- 0 * Y$Ne
+            
           }else if(forget.empty==2) 
         {
           Y$N <- Y$N- Y$Ne
           Y$Ne <- 0 * Y$Ne
-        }
-        bayes <- AnalysisBayes(Y)
-        mle <- AnalysisMLE(Y)
-        nlr <- AnalysisNLR(Y)
-        sw <- computeSweptArea(Y)
+        }                
+#        bayes <- AnalysisBayes(Y)
+
+         nlr <- AnalysisNLR(Y)
+         mle <- AnalysisMLE(Y)
+         sw <- computeSweptArea(Y)
+        Add2File(x=c("Empty", mle$lambda, nlr$lambda, sw), file=file.out)  #Add to the results file
         
-        Add2File(x=c("Empty", mle$lambda, bayes$lambda, nlr$lambda, sw), file=file.out)  #Add to the results file
-        
-        ##empty hooks are considered with all other species
-        Y$N <- Y$N
-        Y$N2 <- Y$N2+Y$Ne
-        Y$Ne <- rep(0,nrow(Y))
-        
-        nlr.empty <- AnalysisNLR(Y)
-        mle.empty <- AnalysisMLE(Y)
-        bayes.empty <- AnalysisBayes(Y)
-        
-        Add2File(x=c("NoEmpty", mle.empty$lambda, bayes.empty$lambda, nlr.empty$lambda, sw), file=file.out)  #Add to the results file
-        
+#       ##empty hooks are considered with all other species
+#        Y$N <- Y$N
+#        Y$N2 <- Y$N2+Y$Ne
+#        Y$Ne <- rep(0,nrow(Y))
+#        
+#        nlr.empty <- AnalysisNLR(Y)
+#        mle.empty <- AnalysisMLE(Y)
+# #       bayes.empty <- AnalysisBayes(Y)
+#        
+#        Add2File(x=c("NoEmpty", mle.empty$lambda, nlr.empty$lambda, sw), file=file.out)  #Add to the results file
+#        
         
       }
   }
