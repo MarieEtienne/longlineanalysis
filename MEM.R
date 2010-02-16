@@ -7,7 +7,7 @@
 ## subdata the dataframe which stored the data to be analyzed
 ##############################################################################
 
-AnalysisMLE <- function(subdata, tune1=3, sameP=TRUE, MEM=1) 
+MEM.MLE <- function(subdata, tune1=3, sameP=TRUE, MEM=1) 
 {
   ## initial values for minimization algorithm
   if(!is.CLonglineData(subdata))
@@ -115,7 +115,8 @@ Mem2MleGeneral <- function(subdata)
 ######################################################
 LogLike <- function(theta,  subdata)
 {
-  ## theta = c(log(lambda1), log(lambda2), logit(p1), logit(p2))
+
+    ## theta = c(log(lambda1), log(lambda2), logit(p1), logit(p2))
   lambda1 = exp(theta[1])
   lambda2 = exp(theta[2])
   p1      = exp(theta[3]) / ( 1 + exp(theta[3]) )
@@ -138,8 +139,9 @@ LogLike <- function(theta,  subdata)
 ######################################################
 LogLike.Mem1 <- function(theta.mem1,  subdata)
 {
+
   ## theta.mem1 = c(log(lambda1), log(lambda2), logit(p2))
-  return( LogLike( c(theta.mem1[1:2], -Inf, theta.mem1[3]), subdata ) )
+  return( LogLike( c(theta.mem1[1:2], -Inf, theta.mem1[3]), subdata=subdata ) )
 }
 
 ######################################################
@@ -148,7 +150,7 @@ LogLike.Mem1 <- function(theta.mem1,  subdata)
 LogLike.Mem2 <- function(theta.mem2,  subdata)
 {
   ## theta.mem1 = c(lambda1, lambda2, p)
-  return( LogLike( c(theta.mem2[1:2], theta.mem2[3], theta.mem2[3] ), subdata ) )
+  return( LogLike( c(theta.mem2[1:2], theta.mem2[3], theta.mem2[3] ), subdata=subdata ) )
 }
 
 
@@ -163,9 +165,8 @@ AIC.Mem1 <- function(subdata)
       lambda2.init = sum( N2 ) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
       p            = sum( Ne )/ sum( Ne + N2 )
       theta.mem1 = c(log(lambda1.init), log(lambda2.init), log(p/(1-p)))
-      
       optim.mem1 = optim(theta.mem1, LogLike.Mem1, method="BFGS", control=list(fnscale=-1), subdata=subdata)
-      return( -2 * optim.mem2$value + 6)
+      return( -2 * optim.mem1$value + 6)
     }
     )
 }
@@ -184,6 +185,47 @@ AIC.Mem2 <- function(subdata)
       
       optim.mem2 = optim(theta.mem2, LogLike.Mem2, method="BFGS", control=list(fnscale=-1), subdata=subdata)
       return( -2 * optim.mem2$value + 6)
+    }
+    )
+}
+
+
+######################################################
+##   Profile likelihood for lambda1 in MEM1
+######################################################
+Profile.Mem1 <- function(lambda1, subdata)
+{
+       with(subdata,
+      {
+        lambda2.init = sum( N2 + Ne) / ( mean(P) * sum( (N- Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
+        p2           = sum( Ne )/ sum( Ne + N2  )
+        theta.mem1 = c(log(lambda2.init), log(p2/(1-p2)))
+        optim.mem1 = optim(theta.mem1 , Partial.Mem1, method="BFGS", control=list(fnscale=-1), lambda1=lambda1, subdata=subdata)
+        return( optim.mem1$value )
+      }
+  )
+}
+######################################################
+##   Partial likelihood for lambda1 in MEM1
+######################################################
+Partial.Mem1 <- function(theta, lambda1, subdata)
+{
+   with(subdata,
+    {
+      return(LogLike.Mem1(c(log(lambda1), theta)), subdata=subdata)
+    }
+    )
+}
+
+
+######################################################
+##   Partial likelihood for lambda1 in MEM2
+######################################################
+Profile.Mem2 <- function(theta, lambda1, subdata)
+{
+   with(subdata,
+    {
+      return(LogLike.Mem2(c(log(lambda1), theta)), subdata=subdata)
     }
     )
 }
