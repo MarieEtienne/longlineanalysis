@@ -36,7 +36,7 @@ SimStudy <- function( file.in, forget.empty=0 )
         sem1 <- SEM.MLE(Y) ## N2= N2+ Ne
         mem2 <- MEM.MLE(Y, MEM=2) ## p1=p2
         sem2 <- SEM.MLE(Y, SEM=2) ## Ne treated as another species
-        sw <- computeSweptArea(Y)
+        sw   <- CPUE(Y)
         Add2File(x=c(mem1, mem2, sem1, sem2, sw), file=file.out)  #Add to the results file
         
       }
@@ -59,7 +59,7 @@ if(lambda1>0)
         Y <- DrawSampleswEscape2(lambda1, lambda2, Y, type, percent, pref)
         mem1.estimates[i,] <- MEM.MLE(Y)
         sem1.estimates[i,] <- SEM.MLE(Y)
-        swept[i] <- computeSweptArea(Y)
+        swept[i] <- CPUE(Y)
         mem2.estimates[i,] <- MEM.MLE(Y, MEM=2)
         sem2.estimates[i,] <- SEM.MLE(Y, SEM=2)
       }

@@ -36,15 +36,12 @@ longline <- data.frame(Year=longline$Year,
 
 
 head(longline)
-
 ## Select Year and area
 Area <- sort(unique(longline$AREA))
 Year <- sort(unique(longline$Year))
 
-
-col.title <-paste("area", "year", "empty/noempty", "mle$lambda1","mle$lambda2" , "bayes$lambda1", "bayes$lambda2", "bayes$Ic1_0.0025", "bayes$Ic1_0.0975",  "bayes$Ic2_0.0025","bayes$Ic2_0.0975" , "nlr$lambda1","nlr$lambda2","nlr$lambdaempty", "swept", sep=",")
-Add2File(col.title,"ResEstimation_noRCA.txt", append=FALSE)
-
+file.out="ResEstimation_noRCA.txt"
+Add2File(x=c("Area", "Year" ,"","mle.lambda1", "mle.lambda2", "nlr.lambda1", "nlr.lambda2","nlr.lambdae","swept"), file=file.out, append=FALSE)
 for(area in Area)
 {
   for(year in Year)
@@ -53,31 +50,17 @@ for(area in Area)
     ind <- with(longline, which(AREA==area & Year==year))
     if(sum(longline[ind,]$N1)>0)
     {
-
       subdata <- longline[ind,]
-
       ##empty hooks are considered as a species
-      nlr <- AnalysisNLR2(subdata)
-      mle <- AnalysisMLE(subdata)
-      bayes <- AnalysisBayes(subdata, length.MC.chain=10000)
-      swept <- computeSweptArea(subdata)
-      
-      ##empty hooks are considered as other
-      subdata <- longline[ind,]
-      subdata$N <- subdata$N
-      subdata$N2 <- subdata$N2+subdata$Nempty
-      subdata$Nempty <- rep(0,nrow(subdata))
-
-      nlr.empty <- AnalysisNLR2(subdata)
-      mle.empty <- AnalysisMLE(subdata)
-      bayes.empty <- AnalysisBayes(subdata, length.MC.chain=10000)
-
-      
-      all <- as.vector(unlist(c(area, year, "empty",  mle$lambda, bayes$lambda, bayes$Ic1, bayes$Ic2, nlr$lambda, swept)))
+      sem1<- SEM.MLE(subdata)
+      mem1 <-MEM.MLE(subdata)
+      #bayes <- AnalysisBayes(subdata, length.MC.chain=10000)
+      sw <- CPUE(subdata)
+      sem2 <- SEM.MLE(subdata, SEM=2)
+      mem2 <- MEM.MLE(subdata, MEM=2)
+      #bayes.empty <- AnalysisBayes(subdata, length.MC.chain=10000)      
+      res <- as.vector(c(area, year, mem1, mem2, sem1,sem2, sw)
       Add2File(all, file="ResEstimation_noRCA.txt")
-      all.empty <- as.vector(unlist(c(area, year, "noempty", mle.empty$lambda, bayes.empty$lambda, bayes.empty$Ic1, bayes.empty$Ic2, 
-                        nlr.empty$lambda, swept )))
-      Add2File(all.empty,file="ResEstimation_noRCA.txt")
     }
   } 
 }

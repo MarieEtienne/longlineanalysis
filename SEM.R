@@ -14,8 +14,9 @@ SEM.MLE <- function(subdata, sameN=T, sameP=TRUE, SEM=1, verbose=F)
   ## initial values for minimization algorithm
   if(!is.CLonglineData(subdata))
   {
-    stop("Argument 1 of function AnalysisMLE is not of class CLOngloneData")
-  } else if( sum( subdata$N1+subdata$N2) == 0)
+    stop("Argument 1 of function SEM.MLE is not of class CLOngloneData")
+
+  }else if( sum( subdata$N1+subdata$N2) == 0)
   {
     return(list( lambda = c( NA,NA,NA,NA ) ) ) ## no possible estimation
   } else if(SEM==1) 
@@ -26,7 +27,6 @@ SEM.MLE <- function(subdata, sameN=T, sameP=TRUE, SEM=1, verbose=F)
     return(Sem2MleGeneral(subdata, verbose=verbose))
   }
 }
-
 ################################################
 ## Estimators for SEM1 general case
 ###############################################
@@ -75,6 +75,7 @@ Sem2MleGeneral <- function(subdata, verbose=F)
 ##    log likelihood for SEM1
 ##############################################
 SEM1Loglike <- function(theta.sem1,  subdata) 
+>>>>>>> .r10
 {
   ##theta.sem1=c(log(lambda1), log(lambda2), log(sigma))
   lambda1 = exp(theta.sem1[1])
@@ -101,15 +102,14 @@ SEM2Loglike <- function(theta.sem2,  subdata)
   sigma   = exp(theta.sem2[4])
   lambda  = lambda1 + lambda2 + lambdae
   with(subdata,
-    {
-      return( sum( dnorm(N1, mean=lambda1/lambda*N * (1-exp(-lambda * P)), sd=sigma, log=T) )+
+     {
+       return( sum( dnorm(N1, mean=lambda1/lambda*N * (1-exp(-lambda * P)), sd=sigma, log=T) )+
       sum( dnorm(N2, mean=lambda2/lambda*N * (1-exp(-lambda * P)), sd=sigma, log=T) )   +
       sum( dnorm(Ne, mean=lambdae/lambda*N * (1-exp(-lambda * P)), sd=sigma, log=T) ))
-    }
+     }
   )
 }
  
-
 ######################################################
 ##   SEM1 AIC
 ######################################################
@@ -129,7 +129,6 @@ AIC.Sem1 <- function(subdata)
   )
 }
   
-
 ######################################################
 ##   SEM2 AIC
 ######################################################
@@ -147,6 +146,7 @@ AIC.Sem2 <- function(subdata)
       theta.sem2 = c( log(lambda1.init),log(lambda2.init),log(lambdae.init),log(sigma.init))
       sem2 = optim(theta.sem2,  SEM2Loglike, method="BFGS", control=list(fnscale=-1),subdata=subdata)
       return(-2*sem2$value + 8)
+>>>>>>> .r10
     }
   )
 }

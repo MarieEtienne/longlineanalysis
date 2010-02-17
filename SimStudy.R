@@ -13,14 +13,16 @@ SimStudy <- function( file.in, forget.empty=0 )
     n.simu <- par.simu$n.simu
     
     file.out <- paste(strsplit(file.in,".init"), ".out", sep="")
-    
     write.table(file=file.out, x=par.simu, sep=",", row.names=FALSE)
-    Add2File(x=c("","mle.lambda1", "mle.lambda2", "bayes.lambda1", "bayes.lambda2", "nlr.lambda1", "nlr.lambda2","nlr.lambdae"), file=file.out)
+
+    Add2File(x=c("mem1.lambda1", "mem1.lambda2", "mem1.p1", "mem1.p2",
+                        "mem2.lambda1", "mem2.lambda2", "mem2.p1", "mem2.p2",
+                        "sem1.lambda1", "sem1.lambda2", "sem1.lambdae", "sigma",
+                        "sem2.lambda1", "sem2.lambda2", "sem2.lambdae", "sigma","sw"), file=file.out)
     
     for( i in 1:n.simu)
       {
         Y <- DrawSampleswEscape(par.simu=par.simu)
-        print(Y)
         ## if empty hooks are forgotten
         if(forget.empty==1)
           {
@@ -30,25 +32,15 @@ SimStudy <- function( file.in, forget.empty=0 )
           Y$N <- Y$N- Y$Ne
           Y$Ne <- 0 * Y$Ne
         }
-        bayes <- AnalysisBayes(Y)
-        mle <- AnalysisMLE(Y)
-        nlr <- AnalysisNLR(Y)
-        sw <- computeSweptArea(Y)
+
+        ##bayes <- AnalysisBayes(Y)
+        mem1 <- MEM.MLE(Y)
+        sem1 <- SEM.MLE(Y)
+        mem2 <- MEM.MLE(Y, MEM=2)
+        sem2 <- SEM.MLE(Y, SEM=2)
+        sw   <- CPUE(Y) 
         
-        Add2File(x=c("Empty", mle$lambda, bayes$lambda, nlr$lambda, sw), file=file.out)  #Add to the results file
-        
-        ##empty hooks are considered with all other species
-        Y$N <- Y$N
-        Y$N2 <- Y$N2+Y$Ne
-        Y$Ne <- rep(0,nrow(Y))
-        
-        nlr.empty <- AnalysisNLR(Y)
-        mle.empty <- AnalysisMLE(Y)
-        bayes.empty <- AnalysisBayes(Y)
-        
-        Add2File(x=c("NoEmpty", mle.empty$lambda, bayes.empty$lambda, nlr.empty$lambda, sw), file=file.out)  #Add to the results file
-        
-        
+        Add2File(x=c(mem1, mem2, sem1, sem2, sw), file=file.out)  #Add to the results file        
       }
   }
 
@@ -58,35 +50,29 @@ SimStudy2 <- function( lambda1, lambda2, Y, M, type="uniform", percent=0.00, pre
   {
     
   nb.data <- dim(Y)[1]
-  mle.estimates <- matrix(NA, ncol=2, nrow=M)
-  swept <- rep(NA, M)
-  nlr.estimates <- matrix(NA, ncol=2, nrow=M)
-  mle.estimates.no <- matrix(NA, ncol=2, nrow=M)
-  nlr.estimates.no <- matrix(NA, ncol=2, nrow=M)
-if(lambda1>0)
+  mem1.estimates <- matrix(NA, ncol=4, nrow=M)
+  mem2.estimates <- matrix(NA, ncol=4, nrow=M)
+  sem1.estimates <- matrix(NA, ncol=4, nrow=M)
+  sem2.estimates <- matrix(NA, ncol=4, nrow=M)
+  sw <- rep(NA, M)
+  if(lambda1>0)
   {
     for( i in 1:M)
       {
         Y <- DrawSampleswEscape2(lambda1, lambda2, Y, type, percent, pref)
-        mle.estimates[i,] <- AnalysisMLE(Y)$lambda
-        nlr.estimates[i,] <- AnalysisNLR(Y)$lambda[c(1,2)]
-        swept[i] <- computeSweptArea(Y)
-        
-        ##empty hooks are considered with all other species
-        Ybis <- Y
-        Ybis$N2 <- Ybis$N2+Ybis$Ne
-        Ybis$Ne <- rep(0,nrow(Ybis))
-        
-        
-        mle.estimates.no[i,] <- AnalysisMLE(Ybis)$lambda
-        nlr.estimates.no[i,] <- AnalysisNLR(Ybis)$lambda[c(1,2)]
-        
-        
+        mem1.estimates[i,] <- MEM.MLE(Y)
+        sem1.estimates[i,] <- SEM.MLE(Y)
+        mem2.estimates[i,] <- MEM.MLE(Y, MEM=2)
+        sem2.estimates[i,] <- SEM.MLE(Y, SEM=2)
+        sw[i] <- CPUE(Y)
       }
   }
-    estimates=matrix(c(mle.estimates, mle.estimates.no, nlr.estimates,  nlr.estimates.no, swept), ncol=9)
+    estimates=matrix(c(mem1, mem2, sem1,sem2, sw), ncol=17)
     estimates <- as.data.frame(estimates)
-    names(estimates) <- c("MEM2.lambda1","MEM2.lambda2","MEM1.lambda1","MEM1.lambda2","SEM2.lambda1","SEM2.lambda2","SEM1.lambda1","SEM1.lambda2", "swept")
+    names(estimates) <- c("mem1.lambda1", "mem1.lambda2", "mem1.p1", "mem1.p2",
+                        "mem2.lambda1", "mem2.lambda2", "mem2.p1", "mem2.p2",
+                        "sem1.lambda1", "sem1.lambda2", "sem1.lambdae", "sigma",
+                        "sem2.lambda1", "sem2.lambda2", "sem2.lambdae", "sigma","sw")
     write.table(row.names=F, file=file.out, x=estimates, col.names=T)
 
   }

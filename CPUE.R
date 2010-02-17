@@ -3,7 +3,7 @@
 ################################################
 
 
-computeCPUE <- function( Y, ZoneCoverage=1)
+CPUE <- function( Y, ZoneCoverage=1)
   {
     if( ! is.CLonglineData(Y))
       {
@@ -11,6 +11,10 @@ computeCPUE <- function( Y, ZoneCoverage=1)
       }
     else
       {
-        return(mean(ZoneCoverage * Y$N1/ (Y$P*Y$N)))
+        with(Y,
+             {
+               return(sum(N1) / sum(P*N) )
+             }
+           )
       }
   }

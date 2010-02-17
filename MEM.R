@@ -12,7 +12,7 @@ MEM.MLE <- function(subdata, tune1=3, sameP=TRUE, MEM=1)
   ## initial values for minimization algorithm
   if(!is.CLonglineData(subdata))
   {
-    stop("Argument 1 of function AnalysisMLE is not of class CLOngloneData")
+    stop("Argument 1 of function MEM.MLE is not of class CLOngloneData")
   } else if( sum( subdata$N1+subdata$N2) == 0)
   {
     return(list( lambda = c( NA,NA, NA,NA ) ) ) ## no possible estimation
@@ -123,8 +123,8 @@ LogLike <- function(theta,  subdata)
   p2      = exp(theta[4]) / ( 1 + exp(theta[4]) )
   
   with(subdata,
-    {
-      lambda=lambda1+lambda2
+       {
+       lambda=lambda1+lambda2
       return (
         sum( lgamma(N+1)-lgamma(Nb+1)-lgamma(N1+1)-lgamma(N2+1)-lgamma(Ne+1) ) - sum(lambda * P * Nb) +
         sum( (N-Nb) * log (1 - exp( -lambda * P) ) ) + sum(N1 * log(  lambda1 / lambda * ( 1-p1) ) )+ 
