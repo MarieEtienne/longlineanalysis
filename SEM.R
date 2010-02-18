@@ -34,13 +34,13 @@ Sem1MleGeneral <- function(subdata,verbose=F)
 {
   with(subdata,
     {
-      lambda1.init = sum( N1 ) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
-      lambda2.init = sum( N2 + Ne) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
+      lambda1.init = (sum( N1 )+1) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
+      lambda2.init = (sum( N2 + Ne)+1) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
       lambda.init = lambda1.init + lambda2.init
       sigma.init   = sqrt ( sum( (N1 - lambda1.init/lambda.init*N *(1-exp(-lambda.init*P)))^2 + 
                     (N2+Ne - lambda2.init/lambda.init*N *(1-exp(-lambda.init*P)))^2 ) / ( 2 * length(N) ) )
       theta.sem1 = c( log(lambda1.init),log(lambda2.init),log(sigma.init))
-      sem1 = optim(theta.sem1,  SEM1Loglike, method="BFGS", control=list(fnscale=-1),subdata=subdata)
+      sem1 = optim(theta.sem1,  LogLike.SEM1, method="BFGS", control=list(fnscale=-1),subdata=subdata)
       if(verbose) print(sem1)
       hat.sem1 = exp(sem1$par)
       return(c(hat.sem1[1:2], NA, hat.sem1[3]) )
@@ -54,9 +54,9 @@ Sem2MleGeneral <- function(subdata, verbose=F)
 {
   with(subdata,
     {
-      lambda1.init = sum( N1 ) / ( mean(P) * sum( (N- Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
-      lambda2.init = sum( N2 ) / ( mean(P) * sum( (N- Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
-      lambdae.init = sum( Ne ) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
+      lambda1.init = (sum( N1 ) +1) / ( mean(P) * sum( (N- Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
+      lambda2.init = (sum( N2 ) +1) / ( mean(P) * sum( (N- Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
+      lambdae.init = (sum( Ne ) +1)/ ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
       lambda.init  = lambda1.init + lambda2.init + lambdae.init
       sigma.init   = sqrt ( sum( (N1 - lambda1.init/lambda.init*N *(1-exp(-lambda.init*P)))^2 + 
                     (N2 - lambda2.init/lambda.init*N *(1-exp(-lambda.init*P)))^2 +
