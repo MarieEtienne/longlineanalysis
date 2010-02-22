@@ -1,12 +1,12 @@
 
 #setwd("E:/MarieEtienne/Longlines") ## directory with the data
-setwd("C:/Users/Marie/Rockfish/Longline")
+#setwd("C:/Users/Marie/Rockfish/Longline")
 
-source("RCode/LongLineJags.R")
-source("RCode/LongLineMethod1.R")
-source("RCode/LongLineExponentialModel.R")
-source("RCode/SweptArea.R")
-source("RCode/Utils.R")
+source("SvnRCode/LongLineJags.R")
+source("SvnRCode/LongLineMethod1.R")
+source("SvnRCode/LongLineExponentialModel.R")
+source("SvnRCode/SweptArea.R")
+source("SvnRCode/Utils.R")
 
 ##Prepare the data
 ## create the data for Bugs

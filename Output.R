@@ -1,9 +1,7 @@
-## we is Empty if treated Empty hooks in the model
-## NoEmpty if empty hooks are treated with non target species
-ExploitSimu <- function(dir, nsimu, we ="Empty")
+ExploitSimu <- function(dir, nsimu)
   {
+    oldpath = getwd()
     setwd(dir)
-
     file.init <- paste("SimuStudy", nsimu, ".init", sep="")
     file.out <-  paste("SimuStudy", nsimu, ".out", sep="")
 
@@ -11,66 +9,62 @@ ExploitSimu <- function(dir, nsimu, we ="Empty")
     theta <- ReadParameters(file.init)
     ##print(theta)
     
-    ##selection of lines
-    ind <- which(res$X==we)
-    res <- res[ind,]
+    ## removes bad resukts with NA values in the estimates
     res2 <- res
-
-    if( theta$type=="without"  | we=="NoEmpty")
-     {
-       threshold <- 1
-     }    else
-      {
-        threshold <- 0
-      }
-
     M <- nrow(res)
     M2 <- M
-    select <- sapply(1:M,  function(x) {  if( sum(is.na(res[x,])) > threshold ) {res2 <<- res2[-c(x),]; M2<<-M2-1} } )
+    select <- sapply(1:M,  function(x) {  if( sum(is.na(res[x,])) > 1 ) {res2 <<- res2[-c(x),]; M2<<-M2-1} } )
     res <- res2
     rm(res2,M2)
     
     ## Estimation
-    mle.l <- c(mean(res$mle.lambda1), mean(res$mle.lambda2))
-    bayes.l <- c(mean(res$bayes.lambda1), mean(res$bayes.lambda2))
-    nlr.l <- c(mean(res$nlr.lambda1), mean(res$nlr.lambda2))
+    mem1 <- c(mean(res$mem1.l1), mean(res$mem1.l2))
+    mem2 <- c(mean(res$mem2.l1), mean(res$mem2.l2))
+    sem1 <- c(mean(res$sem1.l1), mean(res$sem1.l2))
+    sem2 <- c(mean(res$sem2.l1), mean(res$sem2.l2))
+    cpue <- mean(res$sw)
 
     ##check if swept is in the simulations
     sw.bool= (sum(names(res)=="swept")>0)
     if(sw.bool) swept.l <- mean(res$swept)
     
     ## Bias Computation
-    bias.mle.lY <- NA
-    bias.bayes.lY <- NA
-    bias.nlr.lY <- NA
-    bias.swept.lY <- NA
+    bias.mem1 <- NA
+    bias.mem2 <- NA
+    bias.sem1 <- NA
+    bias.sem2 <- NA
+    bias.cpue <- NA
 
     
-    bias.mle.lY <- mean((res$mle.lambda1-theta$lambda1)/theta$lambda1)
-    bias.bayes.lY <- mean((res$bayes.lambda1-theta$lambda1)/theta$lambda1)
-    bias.nlr.lY <- mean((res$nlr.lambda1-theta$lambda1)/theta$lambda1)
-    if(sw.bool) bias.swept.lY <- mean((res$swept-theta$lambda1)/theta$lambda1)
-
+    bias.mem1 <- mean((res$mem1.l1-theta$lambda1)/theta$lambda1)
+    bias.mem2 <- mean((res$mem2.l1-theta$lambda1)/theta$lambda1)
+    bias.sem1 <- mean((res$sem1.l1-theta$lambda1)/theta$lambda1)
+    bias.sem2 <- mean((res$sem2.l1-theta$lambda1)/theta$lambda1)
+    bias.cpue <- mean((res$sw-theta$lambda1)/theta$lambda1)
+   
     ## CV Computation
-    cv.mle.lY <- NA
-    cv.bayes.lY <- NA
-    cv.nlr.lY <- NA
-    cv.swept.lY <- NA
+    cv.mem1 <- NA
+    cv.mem2 <- NA
+    cv.sem1 <- NA
+    cv.sem2 <- NA
+    cv.cpue <- NA
     
-    cv.mle.lY <- sd(res$mle.lambda1)/mean(res$mle.lambda1)
-    cv.bayes.lY <- sd(res$bayes.lambda1)/mean(res$bayes.lambda1)
-    cv.nlr.lY <- sd(res$nlr.lambda1)/mean(res$nlr.lambda1)
-    if(sw.bool) cv.swept.lY <- sd(res$swept)/mean(res$swept)
-
+    cv.mem1 <- sd(res$mem1.l1)/mean(res$mem1.l1)
+    cv.mem2 <- sd(res$mem2.l1)/mean(res$mem2.l1)
+    cv.sem1 <- sd(res$sem1.l1)/mean(res$sem1.l1)
+    cv.sem2 <- sd(res$sem2.l1)/mean(res$sem2.l1)
+    cv.cpue <- sd(res$sw)/mean(res$sw)
+   
     ## IC Computation
     ic.mle.lY <- NA
     ic.bayes.lY <- NA
     ic.nlr.lY <- NA
     
-    ic.mle.lY <- sort(res$mle.lambda1)[c(floor(M*0.05), ceiling(M*0.95))]
-    ic.bayes.lY <- sort(res$bayes.lambda1)[c(floor(M*0.05), ceiling(M*0.95))]
-    ic.nlr.lY <- sort(res$nlr.lambda1)[c(floor(M*0.05), ceiling(M*0.95))]
-    ic.swept <-  sort(res$swept)[c(floor(M*0.05), ceiling(M*0.95))]
+    ic.mem1 <- sort(res$mem1.l1)[c(floor(M*0.05), ceiling(M*0.95))]
+    ic.mem2 <- sort(res$mem2.l1)[c(floor(M*0.05), ceiling(M*0.95))]
+    ic.sem1 <- sort(res$sem1.l1)[c(floor(M*0.05), ceiling(M*0.95))]
+    ic.sem2 <- sort(res$sem2.l1)[c(floor(M*0.05), ceiling(M*0.95))]
+    ic.cpue <- sort(res$sw)[c(floor(M*0.05), ceiling(M*0.95))]
     
 ##    par(mfcol=c(3,1))
 ##    r1 <- range(res$mle.lambda1, res$mbayes.lambda1, res$nlr.lambda1)
@@ -78,9 +72,11 @@ ExploitSimu <- function(dir, nsimu, we ="Empty")
 ##    hist(res$bayes.lambda1, xlim=r1)
 ##    hist(res$nlr.lambda1, xlim=r1)
 
-
-    return(list(bias=c(bias.mle.lY, bias.bayes.lY, bias.nlr.lY, bias.swept.lY), cv=c(cv.mle.lY, cv.bayes.lY, cv.nlr.lY, cv.swept.lY),
-             ic=matrix(c(ic.mle.lY, ic.bayes.lY, ic.nlr.lY, ic.swept), byrow=T, ncol=2), nlr.l=nlr.l, mle.l=mle.l, bayes.l=bayes.l )
+   setwd( oldpath )
+    return(list(
+      bias=c(bias.mem1, bias.mem2, bias.sem1, bias.sem2, bias.cpue),
+      cv=c(cv.mem1, cv.mem2, cv.sem1, cv.sem2, cv.cpue),
+      ic=matrix(c(ic.mem1, ic.mem2, ic.sem1, ic.sem2, ic.cpue), byrow=T, ncol=2))
            )
   }
 
@@ -113,7 +109,7 @@ DrawTable <- function(table.to.draw, col.lab, row.lab, scale.col,val.x , val.y, 
     lines(c(0,n.row+1),c(0,0), col=1)
           
     for( i in 1:n.row)
-      {
+      {                                                                                                                            
         lines(c(0,n.col+1),c(i,i), col=1)
         text(0.5, n.row-i+0.5, val.x[i]) 
         for(j in 1:n.col)
