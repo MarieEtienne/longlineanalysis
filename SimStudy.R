@@ -16,7 +16,9 @@ SimStudy <- function( file.in, forget.empty=0 )
     write.table(file=file.out, x=par.simu, sep=",", row.names=FALSE)
 
     Add2File(x=c("mem1.lambda1", "mem1.lambda2", "mem1.p1", "mem1.p2",
+                 "mem1.lambda1.g", "mem1.lambda2.g", "mem1.p1.g", "mem1.p2.g",
                         "mem2.lambda1", "mem2.lambda2", "mem2.p1", "mem2.p2",
+                        "mem2.lambda1.g", "mem2.lambda2.g", "mem2.p1.g", "mem2.p2.g",
                         "sem1.lambda1", "sem1.lambda2", "sem1.lambdae", "sigma",
                         "sem2.lambda1", "sem2.lambda2", "sem2.lambdae", "sigma","sw"), file=file.out)
     
@@ -35,12 +37,14 @@ SimStudy <- function( file.in, forget.empty=0 )
 
         ##bayes <- AnalysisBayes(Y)
         mem1 <- MEM.MLE(Y)
+        mem1.g <- MEM.MLE(Y, sameP=F)
         sem1 <- SEM.MLE(Y)
         mem2 <- MEM.MLE(Y, MEM=2)
+        mem2.g <- MEM.MLE(Y, MEM=2, sameP=F)
         sem2 <- SEM.MLE(Y, SEM=2)
         sw   <- CPUE(Y) 
         
-        Add2File(x=c(mem1, mem2, sem1, sem2, sw), file=file.out)  #Add to the results file        
+        Add2File(x=c(mem1, mem1.g, mem2.g, mem2, sem1, sem2, sw), file=file.out)  #Add to the results file        
       }
   }
 

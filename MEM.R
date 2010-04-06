@@ -76,7 +76,7 @@ Mem2MleSameP <- function(subdata)
 Mem1MleGeneral <- function(subdata)
 {
   with(subdata,
-    {
+    {                                    
       lambda1.init = sum( N1 ) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb)) 
       lambda2.init = sum( N2 + Ne ) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
       p            = sum( Ne )/ sum( Ne + N2)
@@ -138,7 +138,7 @@ LogLike <- function(theta,  subdata)
 ##   MEM LogLikelihood
 ######################################################
 LogLike.MEM1 <- function(theta.mem1,  subdata)
-{
+{                                                    
   ## theta.mem1 = c(log(lambda1), log(lambda2), logit(p2))
   return( LogLike( c(theta.mem1[1:2], -Inf, theta.mem1[3]), subdata=subdata ) )
 }
@@ -299,7 +299,46 @@ MEM.Cov <- function(subdata, MEM=1)
           p2*(1-p2)/ (moinsexp)), byrow=T, ncol=3)
         
       }
-    
+      
     
     return(1/sum(subdata$N) * mat)
+  }
+
+
+  MEM.Fisher <- function(theta, P, MEM=1)
+  {
+    lambda1   = theta[1]
+    lambda2   = theta[2]
+    p1        = theta[3]
+    p2        = theta[4] 
+    p         = p1               
+    lambda    = lambda1+lambda2
+    moinsexp = 1-exp(-lambda*P)
+
+    if(MEM==1)
+      {
+        mat= matrix(c(P*P * exp(-lambda * P) / moinsexp + moinsexp /( lambda) *(1/lambda1 - 1/lambda),
+                      P*P * exp(-lambda * P) / moinsexp + moinsexp /( lambda*lambda),
+                      0,
+                      P*P * exp(-lambda * P) / moinsexp + moinsexp /( lambda*lambda),
+                      P*P * exp(-lambda * P) / moinsexp + moinsexp /( lambda) *(1/lambda2 - 1/lambda),
+                      0,
+                      0,
+                      0,
+                      (lambda2 * moinsexp)/(lambda  *p2*(1-p2) ))
+        , byrow=T, ncol=3)
+      }else if( MEM==2)
+      {
+        mat= matrix(c(P*P * exp(-lambda * P) / moinsexp + (1-p) * moinsexp /( lambda * lambda ) *(lambda2 /lambda1),
+                      P*P * exp(-lambda * P) / moinsexp - (1-p)  * moinsexp /( lambda*lambda),
+                      0,
+                      P*P * exp(-lambda * P) / moinsexp - (1-p)  * moinsexp /( lambda*lambda),
+                      P*P * exp(-lambda * P) / moinsexp + (1-p) * moinsexp /( lambda * lambda ) *(lambda1 /lambda2),
+                      0,
+                      0,
+                      0,
+                      (moinsexp)/(p*(1-p) ))
+        , byrow=T, ncol=3) 
+      }
+    return(mat)
   }

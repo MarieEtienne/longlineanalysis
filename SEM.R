@@ -9,7 +9,7 @@
 ## Y the dataframe which stored the data, longline in this code
 ##############################################################################
 
-SEM.MLE <- function(subdata, sameN=T, sameP=TRUE, SEM=1, verbose=F) 
+SEM.MLE <- function(subdata, sameN=TRUE, sameP=TRUE, SEM=1, verbose=F) 
 {
   ## initial values for minimization algorithm
   if(!is.CLonglineData(subdata))
@@ -18,13 +18,47 @@ SEM.MLE <- function(subdata, sameN=T, sameP=TRUE, SEM=1, verbose=F)
 
   }else if( sum( subdata$N1+subdata$N2) == 0)
   {
-    return(list( lambda = c( NA,NA,NA,NA ) ) ) ## no possible estimation
+    return( c( NA,NA,NA,NA )  ) ## no possible estimation
   } else if(SEM==1) 
   {
-    return(Sem1MleGeneral(subdata, verbose=verbose))
+    if(sameN & sameP)
+    {
+      with(subdata, 
+      {
+        P.m=mean(P)
+        N.m =mean(N)
+        lambda1 = sum(N1) / sum (N-Nb) * 1/P.m *log(sum(N) /sum(Nb) )
+        lambda2 = sum(N2+Ne) / sum (N-Nb) * 1/P.m *log(sum(N) /sum(Nb) )
+        lambda=lambda1+lambda2
+        sigma = sqrt(1/(2*length(N))*sum ( (N1-N*lambda1 /lambda *(1-exp(-lambda *P)))^2 + (N2+Ne-N*lambda2 /lambda *(1-exp(-lambda *P)))^2)  )
+        return(c( lambda1,lambda2,NA,sigma )  ) ## no possible estimation 
+      }
+      )
+    }else
+    {
+      return(Sem1MleGeneral(subdata, verbose=verbose))
+    }
   } else
-  {
-    return(Sem2MleGeneral(subdata, verbose=verbose))
+  {        
+    if(sameN & sameP)
+    {
+      with(subdata, 
+      {
+        P.m=mean(P)
+        N.m =mean(N)
+        lambda1 = sum(N1) / sum (N-Nb) * 1/P.m *log(sum(N) /sum(Nb) )
+        lambda2 = sum(N2) / sum (N-Nb) * 1/P.m *log(sum(N) /sum(Nb) )
+        lambdae = sum(Ne) / sum (N-Nb) * 1/P.m *log(sum(N) /sum(Nb) )
+        lambda=lambda1+lambda2+lambdae
+        sigma = sqrt(1/(3*length(N))*sum((N1-N*lambda1 /lambda *(1-exp(-lambda *P.m)))^2 + (N2-N*lambda2 /lambda *(1-exp(-lambda *P.m)))^2 +
+        (Ne-N*lambdae /lambda *(1-exp(-lambda *P.m)))^2) )
+        return( c( lambda1,lambda2,lambdae,sigma )  ) ## no possible estimation 
+      }
+      )
+    }else
+    {
+      return(Sem2MleGeneral(subdata, verbose=verbose))
+    }
   }
 }
 ################################################
@@ -33,7 +67,7 @@ SEM.MLE <- function(subdata, sameN=T, sameP=TRUE, SEM=1, verbose=F)
 Sem1MleGeneral <- function(subdata,verbose=F)
 {
   with(subdata,
-    {
+    {                       
       lambda1.init = (sum( N1 )+1) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
       lambda2.init = (sum( N2 + Ne)+1) / ( mean(P) * sum( (N - Nb) ) ) * log( sum(N) / sum(Nb))  # P=mean(P) since all p are supposed to be equal or can be considered as equal
       lambda.init = lambda1.init + lambda2.init
