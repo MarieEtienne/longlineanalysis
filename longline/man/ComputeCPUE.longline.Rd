@@ -17,9 +17,9 @@ ComputeCPUE.longline computes classical CPUE according to Fact1 and Fact2
 }
 \examples{
 data(longlineEx)
-ll1 <- longline(fact1=longlineData$Year, fact2=longlineData$Area,  nt=longlineData$NT, nnt=longlineData$NNT, nb=longlineData$Nb, ne=longlineData$Ne, s=longlineData$soaktime)
+ll1 <- longline(fact1=longlineEx$Year, fact2=longlineEx$Area,  nt=longlineEx$NT, nnt=longlineEx$NNT, nb=longlineEx$Nb, ne=longlineEx$Ne, s=longlineEx$soaktime)
 ComputeCPUE.longline(ll1)
-ll2 <- longline(fact1=longlineData$Year, nt=longlineData$NT, nnt=longlineData$NNT, nb=longlineData$Nb, ne=longlineData$Ne, s=longlineData$soaktime)
+ll2 <- longline(fact1=longlineEx$Year, nt=longlineEx$NT, nnt=longlineEx$NNT, nb=longlineEx$Nb, ne=longlineEx$Ne, s=longlineEx$soaktime)
 ComputeCPUE.longline(ll2)
 }
 
