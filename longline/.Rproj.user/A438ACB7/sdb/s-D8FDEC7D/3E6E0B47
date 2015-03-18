@@ -1,0 +1,17 @@
+{
+    "contents" : "\nSR_ChP<-read.csv(\"/home/etienne/Bureau/SR_prR.csv\",header=T,skip=0,sep=\";\",dec=\".\")\nhead(SR_ChP,n=5)\nSR_ChP$broma_tot <- as.factor(SR_ChP$broma_tot)\nSR_ChP$Annee <- as.factor(SR_ChP$Annee)\nwith(SR_ChP, interaction.plot(x.factor=Annee,trace.factor=Sous.zone,response=d_CP,fun=mean,col=\"red\", type=\"b\"))\nlevels(SR_ChP$Annee)\nwith(SR_ChP, boxplot(d_CP~Sous.zone+Annee))\n\n#régression lin : dCP = f(Sous-zone + année)\ndC1=lm(d_CP~Sous.zone + Annee, data=SR_ChP)\ndC2=lm(d_CP~Sous.zone,data=SR_ChP)\nsummary(dC1)\nanova(dC1)\nplot(dC1)\n\n#régression lin : dCP = f(Sous-zone + année) avec interaction\ndC2=lm(log(d_CP)~Sous.zone*Annee, data=SR_ChP)\nsummary(dC2)\nanova(dC2)\nplot(dC2)\n\n#régression lin : dCP = f(Broma + Sous-zone + année)\ndC3=lm(d_CP~broma_tot*Sous.zone*Annee, data=SR_ChP)\nsummary(dC3)\nanova(dC3)\nplot(dC3)\n\n#régression lin : dCP_SO = f(Broma + année)\nSR_ChPSO <- SR_ChP[c(50:69),]\nSR_ChPNO <- SR_ChP[-c(50:69),]\ndC4=lm(d_CP~broma_tot*Annee, data=SR_ChPSO)\nsummary(dC4)\nanova(dC4)\nplot(dC4)",
+    "created" : 1406193056966.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "2308403894",
+    "id" : "3E6E0B47",
+    "lastKnownWriteTime" : 795635060,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

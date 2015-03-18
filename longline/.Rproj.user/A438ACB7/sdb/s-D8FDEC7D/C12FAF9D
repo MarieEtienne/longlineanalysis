@@ -1,0 +1,16 @@
+{
+    "contents" : "#######################################\n##\n## Definition of object ClonglineData\n##\n#######################################\n\n\nas.CLonglineData <- function(year, area, n, nt, nnt, nb, ne, s, sames=NULL, ne.missing=F)\n{\n  n.lines <- length(year)\n  if(ne.missing)\n    ne=rep(NA,n.lines)\n  if(n.lines == length(area) &\n      n.lines == length(nt) &\n      n.lines == length(nnt) &\n      n.lines == length(nb) & \n      n.lines == length(ne) & \n      n.lines == length(s) )\n    {\n      if(ne.missing)\n        n=nt+nnt+nb\n      else\n      {\n        ne[is.na(ne)] <- 0\n        n=nt+nnt+nb+ne\n      }\n      Year   <- year\n      Area   <- area\n      NYear  <- length(unique(Year))\n      NArea  <- length(unique(Area))\n      NData  <- n.lines\n      nb[is.na(nb)] <- 0\n      ## same soaktime  within year,area ?\n      sd.soaktime <- as.vector(by(s, list(year,area), sd))\n      sd.soaktime <- sd.soaktime[!is.na(sd.soaktime)]\n      if(is.null(sames))\n        sames <- (sum(sd.soaktime<0.1)==length(sd.soaktime))\n       \n      res <- list(Year=Year, Area=Area, NYear=NYear, NArea=NArea, NData=NData, \n                  Ne=ne, N=n, NT=nt, NNT=nnt, Nb=nb, S=s, sameS=sames)        \n    }\n  else\n    {\n      print(\"Lengths of the vectors differ\")\n      return (-1)\n    }\n  class(res) <- c(\"CLonglineData\")\n  return(res)\n}\n\n\n\nis.CLonglineData <- function(x)\n{\n  return( inherits(x, \"CLonglineData\") )\n}\n\nCLonglineData.extract <- function(x, year=NULL, area=NULL)\n{\n   if(is.null(year)&is.null(area))\n    ind <- 1:length(x$Year)\n   else if( is.null(year))\n    ind <-which((x$Area==area))\n  else if(is.null(area))\n    ind <-which((x$year==year))\n  else \n    ind <-which((x$Year==year)&(x$Area==area))\n\n  \n  if(length(ind)>0)\n    {\n      extract <- with(x,\n                  as.CLonglineData(year=Year[ind], area=Area[ind], n=N[ind], nt=NT[ind], nnt=NNT[ind], nb=Nb[ind], \n                                   ne=Ne[ind], s=S[ind])\n                  )\n  }else\n    extract=NULL\n  return(extract)\n}\n\n\nCLonglineData.CPUE<- function(x)\n{\n  yearUnique <- unique(x$Year) \n  areaUnique <- unique(x$Area)\n  res <- data.frame(ID =rep(NA, longline.data$NYear*longline.data$NArea), CPUE = rep(NA, longline.data$NYear*longline.data$NArea))\n  compt <- 1\n  for( a in areaUnique){\n    for(y in yearUnique){\n      ind <- which(x$Year==y & x$Area==a)\n      if(length(ind)>0){\n         res[compt,2] <- sum(x$NT[ind]) / sum(x$S[ind]*x$N[ind])\n         res[compt,1]=paste(a, y, sep=\"-\")\n        compt <- compt +1\n      }\n        \n    }\n  \n  }\n  res <- res[1:(compt-1),]\n  print(res)\n  return(res)\n}\n",
+    "created" : 1406129908518.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4175828798",
+    "id" : "C12FAF9D",
+    "lastKnownWriteTime" : 1406130095,
+    "path" : "/media/metienne_h/Recherche/CPUE/RockFish/Svn/longline/R/CLonglineData.R",
+    "project_path" : "R/CLonglineData.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

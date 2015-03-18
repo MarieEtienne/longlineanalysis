@@ -1,0 +1,16 @@
+{
+    "contents" : "boxPlot_LL <- function(longline, outmcmc, file.out=\"longlineOut.pdf\", YlimT=NULL, YlimNT=NULL)\n{\n  NYear <- longline$NYear\n  NArea <- longline$NArea\n  outl1 <- apply(outmcmc$lambda1,1, mean)\n  outl2 <- apply(outmcmc$lambda2,1, mean)\n  outpe <- apply(outmcmc$pe, 1, mean)\n  yearunique = as.numeric(levels(as.factor(longline$Year)))\n  areaunique = levels(as.factor(longline$Area))\n  \n  compt=1\n  \n  for( a in 1:NArea){\n    provlambdaT= data.frame(Year=NULL, Value=NULL)\n    provlambdaNT= data.frame(Year=NULL, Value=NULL)\n    for( y in 1:NYear)\n    {\n      if(sum(longline$Year==yearunique[y] & longline$Area==areaunique[a])>1)\n      {\n        n <- length(outmcmc$lambda1[1,,])\n        p1 <- data.frame(Year=rep(yearunique[y],n), Value=outmcmc$lambda1[(a-1)*NYear+y,,])\n        p2 <- data.frame(Year=rep(yearunique[y],n), Value=outmcmc$lambda2[(a-1)*NYear+y,,])\n        provlambdaT = rbind(provlambdaT, p1)\n        provlambdaNT = rbind(provlambdaNT, p2)\n      }\n    }\n    \n    pdf(paste('T_Area', gsub(\"/\", \"-\", areaunique[a], fixed=T), '_', file.out, sep=\"\"))\n    if(is.null(YlimT))\n       boxplot(provlambdaT$Value~provlambdaT$Year) else\n         boxplot(provlambdaT$Value~provlambdaT$Year, ylim=YlimT)\n    dev.off()\n      \n    pdf(paste('NT_Area', gsub(\"/\", \"-\", areaunique[a], fixed=T), '_', file.out,sep=\"\"))\n    if(is.null(YlimNT))\n      boxplot(provlambdaNT$Value~provlambdaNT$Year) else\n        boxplot(provlambdaNT$Value~provlambdaNT$Year, ylim=YlimNT)\n    dev.off()\n  }\n  return(0)\n  \n}\n\n ",
+    "created" : 1406212890998.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3179048975",
+    "id" : "9B632C85",
+    "lastKnownWriteTime" : 1361885195,
+    "path" : "/media/metienne_h/Recherche/CPUE/RockFish/Svn/longline/R/Graph.R",
+    "project_path" : "R/Graph.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

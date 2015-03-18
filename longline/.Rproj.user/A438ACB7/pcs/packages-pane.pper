@@ -1,0 +1,7 @@
+{
+    "installOptions" : {
+        "installDependencies" : true,
+        "installFromRepository" : false,
+        "libraryPath" : "/home/etienne/R/i686-pc-linux-gnu-library/2.15"
+    }
+}

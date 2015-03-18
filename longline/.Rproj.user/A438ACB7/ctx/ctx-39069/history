@@ -1,0 +1,512 @@
+res <- data.frame(CPUE = rep(NA, longline.data$NYear*longline.data$NArea))
+compt <- 1
+for( a in areaUnique){
+for(y in yearUnique){
+ind <- which(x$Year==y & x$Area==a)
+if(length(ind)>0){
+res[compt,1] <- sum(x$NT[ind]) / sum(x$S[ind]*x$N[ind])
+row.names(res)[compt]=paste(a, y, sep="-")
+compt <- compt +1
+}
+}
+}
+res <- res[1:(compt-1),]
+return(res)
+}
+CLonglineData.CPUE (longline.data)
+CPUE <-CLonglineData.CPUE (longline.data)
+library(longline)
+CPUE
+CPUE <-CLonglineData.CPUE (longline.data)
+CPUE
+library(longline)
+rm(list=ls())
+path <- '/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09'
+fileIn="DataPropreLongline_noRCA"
+oneArea=F
+oneYear=F
+####library
+library('prettyR')
+library('xtable')
+library('longline')
+# #### data importation and verification
+# ###parametres de phma_south
+# m=0.5884
+# sigma=0.0013
+# sigma2=sigma^2
+# a.n=((1-m)*m/sigma2 -1)*m
+# b.n=(1-m)/m * a.n
+#
+# ###parametres de phma_north
+# m=0.5146
+# sigma=0.0014
+# sigma2=sigma^2
+# a.s=((1-m)*m/sigma2 -1)*m
+# b.s=(1-m)/m * a.s
+#  abc <-seq(0,1, length.out=100)
+#  plot(abc, dbeta(abc,shape1=a.s, shape2=b.s),  "l", col=3)
+#  lines(abc, dbeta(abc,shape1=a.n, shape2=b.n),  col=2)
+# # echan1 = rbeta(1000,, shape1=a.n, shape2=b.n)
+# # echan2 = rbeta(1000,, shape1=a.s, shape2=b.s)
+# # m=mean(c(echan1, echan2))
+# # sigma=sd(c(echan1, echan2))
+# # sigma2=sigma^2
+# # a.moy=round(((1-m)*m/sigma2 -1)*m)
+# # b.moy=round((1-m)/m * a.moy)
+# # lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+# ## Find the rihgt quantiles
+# q99percent=max(qbeta(0.99, shape1=a.n, shape2=b.n), qbeta(0.99, shape1=a.s, shape2=b.s))
+# q1percent=min(qbeta(0.01, shape1=a.n, shape2=b.n), qbeta(0.01, shape1=a.s, shape2=b.s))
+#
+# toMin = function(par)
+# {
+#   return( (q99percent-qbeta(0.99, shape1=par[1], shape2=par[2]))^2+ (q1percent-qbeta(0.01, shape1=par[1], shape2=par[2]))^2)
+# }
+#
+# par=optim(c( (a.s+a.n)/2, (b.s+b.n)/2), toMin)$par
+# a.moy=par[1]
+# b.moy=par[2]
+# lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+#
+#
+#
+# Reading data ------------------------------------------------------------
+setwd(path)
+resdir <- "Res"
+if( ! file.exists(file.path(path,resdir)) )
+dir.create(file.path(path,resdir))
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=2)
+datalong$N=datalong$NT + datalong$NNT + datalong$Ne+ datalong$Nb
+resdir <- file.path(path,resdir,fileIn, sep='')
+if(oneArea)
+resdir=paste(resdir , '-OneArea',  sep='')
+if(oneYear)
+resdir=paste(resdir, '-OneYear', sep='')
+if(!file.exists(resdir)) dir.create(resdir)
+setwd(resdir)
+names(datalong)[which(names(datalong)=="DFO_STAT_AREA_CODE")]='Area'
+names(datalong)[which(names(datalong)=="soaktime.minutes.")]='soaktime'
+if(oneArea)
+datalong$Area=as.factor(rep("UniqueArea", nrow(datalong)))
+if(oneYear)
+datalong$Year=rep(1, nrow(datalong))
+summary(datalong)
+head(datalong)
+longline.data <- formatData(datalong, ne.missing=F)
+outBayesGlobal <- estimateBayes(longline.data, MEM=2, ne.missing=F, a.moy=a.moy, b.moy=b.moy, n.iter=5000,burnin=2000)
+pMGlobal <- postMean(longline.data, outBayesGlobal)
+boxPlot_LL(longline.data, outBayesGlobal, YlimT=c(0, 4e-3),  YlimNT=c(0, 2.5e-2), file.out=paste(fileIn, '.pdf', sep=''))
+out = postSummary(longline.data, outBayesGlobal)
+write.table(file=paste('MEM-', fileIn, "_lambdaTarget.csv", sep=''), out$lambdaT)
+write.table(file=paste('MEM-',fileIn, "_lambdaNonTarget.csv", sep=''), out$lambdaNT)
+write.table(file=paste('MEM-',fileIn, "_pe.csv", sep=''), out$pe)
+# Row CPUE ----------------------------------------------------------------
+CPUE <-CLonglineData.CPUE (longline.data)
+write.table(file=paste('CPUE-', fileIn, "_lambdaTarget.csv", sep=''))
+CPUE <-CLonglineData.CPUE (longline.data)
+library(longline)
+CPUE <-CLonglineData.CPUE (longline.data)
+CLonglineData.CPUE<- function(x)
+{
+yearUnique <- unique(x$Year)
+areaUnique <- unique(x$Area)
+res <- data.frame(ID =rep(NA, longline.data$NYear*longline.data$NArea), CPUE = rep(NA, longline.data$NYear*longline.data$NArea))
+compt <- 1
+for( a in areaUnique){
+for(y in yearUnique){
+ind <- which(x$Year==y & x$Area==a)
+if(length(ind)>0){
+res[compt,2] <- sum(x$NT[ind]) / sum(x$S[ind]*x$N[ind])
+res[compt,1]=paste(a, y, sep="-")
+compt <- compt +1
+}
+}
+}
+res <- res[1:(compt-1),]
+print(res)
+return(res)
+}
+CPUE <-CLonglineData.CPUE (longline.data)
+write.table(file=paste('CPUE-', fileIn, "_lambdaTarget.csv", sep=''), x=CPUE)
+library(longline)
+CPUE <-CLonglineData.CPUE (longline.data)
+rm(list=ls())
+path <- '/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09'
+fileIn="DataPropreLongline_noRCA"
+oneArea=F
+oneYear=F
+####library
+library('prettyR')
+library('xtable')
+library('longline')
+library(longline)
+library(longline)
+library(longline)
+source('/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09/Main.R')
+CLonglineData.CPUE
+CPUE <-CLonglineData.CPUE (longline.data)
+CPUE
+getwd()
+paste('CPUE-', fileIn, "_lambdaTarget.csv", sep='')
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''), x=CPUE)
+source('~/.active-rstudio-document')
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''), row.names=1,
+x=CPUE)
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''), row.names=1,
+x=CPUE)
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''),  x=CPUE)
+SR_ChP<-read.csv("/home/etienne/Bureau/SR_prR.csv",header=T,skip=0,sep=";",dec=",")
+SR_ChP<-read.csv("/home/etienne/Bureau/SR_prR.csv",header=T,skip=0,sep=";",dec=".")
+head(SR_ChP,n=10)
+SR_ChP$broma_tot <- as.factor(SR_ChP$broma_tot)
+SR_ChP$Annee <- as.factor(SR_ChP$Annee)
+with(SR_ChP, interaction.plot(x.factor=Annee,trace.factor=Sous.zone,response=d_CP,fun=mean,col="red", type="b"))
+levels(SR_ChP$Annee)
+with(SR_ChP, boxplot(d_CP~Sous.zone+Annee))
+SR_ChP$broma_tot <- as.factor(SR_ChP$broma_tot)
+SR_ChP$Annee <- as.factor(SR_ChP$Annee)
+with(SR_ChP, interaction.plot(x.factor=Annee,trace.factor=Sous.zone,response=d_CP,fun=mean,col="red", type="b"))
+head(SR_ChP,n=10)
+head(SR_ChP,n=5)
+rm(list=ls())
+path <- '/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09'
+fileIn="DataPropreLongline_noRCA"
+fileIn="insideLL_03_09_noRCA_noDROP_OFFs_noSNARLSs"
+oneArea=F
+oneYear=F
+####library
+library('prettyR')
+library('xtable')
+library('longline')
+# #### data importation and verification
+# ###parametres de phma_south
+# m=0.5884
+# sigma=0.0013
+# sigma2=sigma^2
+# a.n=((1-m)*m/sigma2 -1)*m
+# b.n=(1-m)/m * a.n
+#
+# ###parametres de phma_north
+# m=0.5146
+# sigma=0.0014
+# sigma2=sigma^2
+# a.s=((1-m)*m/sigma2 -1)*m
+# b.s=(1-m)/m * a.s
+#  abc <-seq(0,1, length.out=100)
+#  plot(abc, dbeta(abc,shape1=a.s, shape2=b.s),  "l", col=3)
+#  lines(abc, dbeta(abc,shape1=a.n, shape2=b.n),  col=2)
+# # echan1 = rbeta(1000,, shape1=a.n, shape2=b.n)
+# # echan2 = rbeta(1000,, shape1=a.s, shape2=b.s)
+# # m=mean(c(echan1, echan2))
+# # sigma=sd(c(echan1, echan2))
+# # sigma2=sigma^2
+# # a.moy=round(((1-m)*m/sigma2 -1)*m)
+# # b.moy=round((1-m)/m * a.moy)
+# # lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+# ## Find the rihgt quantiles
+# q99percent=max(qbeta(0.99, shape1=a.n, shape2=b.n), qbeta(0.99, shape1=a.s, shape2=b.s))
+# q1percent=min(qbeta(0.01, shape1=a.n, shape2=b.n), qbeta(0.01, shape1=a.s, shape2=b.s))
+#
+# toMin = function(par)
+# {
+#   return( (q99percent-qbeta(0.99, shape1=par[1], shape2=par[2]))^2+ (q1percent-qbeta(0.01, shape1=par[1], shape2=par[2]))^2)
+# }
+#
+# par=optim(c( (a.s+a.n)/2, (b.s+b.n)/2), toMin)$par
+# a.moy=par[1]
+# b.moy=par[2]
+# lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+#
+#
+#
+# Reading data ------------------------------------------------------------
+setwd(path)
+resdir <- "Res"
+if( ! file.exists(file.path(path,resdir)) )
+dir.create(file.path(path,resdir))
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=2)
+datalong$N=datalong$NT + datalong$NNT + datalong$Ne+ datalong$Nb
+resdir <- file.path(path,resdir,fileIn, sep='')
+if(oneArea)
+resdir=paste(resdir , '-OneArea',  sep='')
+if(oneYear)
+resdir=paste(resdir, '-OneYear', sep='')
+if(!file.exists(resdir)) dir.create(resdir)
+setwd(resdir)
+names(datalong)[which(names(datalong)=="DFO_STAT_AREA_CODE")]='Area'
+names(datalong)[which(names(datalong)=="soaktime.minutes.")]='soaktime'
+if(oneArea)
+datalong$Area=as.factor(rep("UniqueArea", nrow(datalong)))
+if(oneYear)
+datalong$Year=rep(1, nrow(datalong))
+summary(datalong)
+head(datalong)
+longline.data <- formatData(datalong, ne.missing=F)
+outBayesGlobal <- estimateBayes(longline.data, MEM=2, ne.missing=F, a.moy=a.moy, b.moy=b.moy, n.iter=5000,burnin=2000)
+pMGlobal <- postMean(longline.data, outBayesGlobal)
+boxPlot_LL(longline.data, outBayesGlobal, YlimT=c(0, 4e-3),  YlimNT=c(0, 2.5e-2), file.out=paste(fileIn, '.pdf', sep=''))
+out = postSummary(longline.data, outBayesGlobal)
+write.table(file=paste('MEM-', fileIn, "_lambdaTarget.csv", sep=''), out$lambdaT)
+write.table(file=paste('MEM-',fileIn, "_lambdaNonTarget.csv", sep=''), out$lambdaNT)
+write.table(file=paste('MEM-',fileIn, "_pe.csv", sep=''), out$pe)
+# Row CPUE ----------------------------------------------------------------
+CPUE <-CLonglineData.CPUE (longline.data)
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''),  x=CPUE)
+rm(list=ls())
+path <- '/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09'
+fileIn="DataPropreLongline_noRCA"
+fileIn="insideLL_03_09_noRCA_noDROP_OFFs_noSNARLSs"
+oneArea=F
+oneYear=F
+####library
+library('prettyR')
+library('xtable')
+library('longline')
+# #### data importation and verification
+# ###parametres de phma_south
+# m=0.5884
+# sigma=0.0013
+# sigma2=sigma^2
+# a.n=((1-m)*m/sigma2 -1)*m
+# b.n=(1-m)/m * a.n
+#
+# ###parametres de phma_north
+# m=0.5146
+# sigma=0.0014
+# sigma2=sigma^2
+# a.s=((1-m)*m/sigma2 -1)*m
+# b.s=(1-m)/m * a.s
+#  abc <-seq(0,1, length.out=100)
+#  plot(abc, dbeta(abc,shape1=a.s, shape2=b.s),  "l", col=3)
+#  lines(abc, dbeta(abc,shape1=a.n, shape2=b.n),  col=2)
+# # echan1 = rbeta(1000,, shape1=a.n, shape2=b.n)
+# # echan2 = rbeta(1000,, shape1=a.s, shape2=b.s)
+# # m=mean(c(echan1, echan2))
+# # sigma=sd(c(echan1, echan2))
+# # sigma2=sigma^2
+# # a.moy=round(((1-m)*m/sigma2 -1)*m)
+# # b.moy=round((1-m)/m * a.moy)
+# # lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+# ## Find the rihgt quantiles
+# q99percent=max(qbeta(0.99, shape1=a.n, shape2=b.n), qbeta(0.99, shape1=a.s, shape2=b.s))
+# q1percent=min(qbeta(0.01, shape1=a.n, shape2=b.n), qbeta(0.01, shape1=a.s, shape2=b.s))
+#
+# toMin = function(par)
+# {
+#   return( (q99percent-qbeta(0.99, shape1=par[1], shape2=par[2]))^2+ (q1percent-qbeta(0.01, shape1=par[1], shape2=par[2]))^2)
+# }
+#
+# par=optim(c( (a.s+a.n)/2, (b.s+b.n)/2), toMin)$par
+# a.moy=par[1]
+# b.moy=par[2]
+# lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+#
+#
+#
+# Reading data ------------------------------------------------------------
+setwd(path)
+resdir <- "Res"
+if( ! file.exists(file.path(path,resdir)) )
+dir.create(file.path(path,resdir))
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=2)
+head(datalong)
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=2)
+head(datalong)
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=1)
+head(datalong)
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=1)
+head(datalong)
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=1)
+head(datalong)
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=1)
+datalong$N=datalong$NT + datalong$NNT + datalong$Ne+ datalong$Nb
+rm(list=ls())
+path <- '/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09'
+fileIn="DataPropreLongline_noRCA"
+fileIn="insideLL_03_09_noRCA_noDROP_OFFs_noSNARLSs"
+oneArea=F
+oneYear=F
+####library
+library('prettyR')
+library('xtable')
+library('longline')
+# #### data importation and verification
+# ###parametres de phma_south
+# m=0.5884
+# sigma=0.0013
+# sigma2=sigma^2
+# a.n=((1-m)*m/sigma2 -1)*m
+# b.n=(1-m)/m * a.n
+#
+# ###parametres de phma_north
+# m=0.5146
+# sigma=0.0014
+# sigma2=sigma^2
+# a.s=((1-m)*m/sigma2 -1)*m
+# b.s=(1-m)/m * a.s
+#  abc <-seq(0,1, length.out=100)
+#  plot(abc, dbeta(abc,shape1=a.s, shape2=b.s),  "l", col=3)
+#  lines(abc, dbeta(abc,shape1=a.n, shape2=b.n),  col=2)
+# # echan1 = rbeta(1000,, shape1=a.n, shape2=b.n)
+# # echan2 = rbeta(1000,, shape1=a.s, shape2=b.s)
+# # m=mean(c(echan1, echan2))
+# # sigma=sd(c(echan1, echan2))
+# # sigma2=sigma^2
+# # a.moy=round(((1-m)*m/sigma2 -1)*m)
+# # b.moy=round((1-m)/m * a.moy)
+# # lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+# ## Find the rihgt quantiles
+# q99percent=max(qbeta(0.99, shape1=a.n, shape2=b.n), qbeta(0.99, shape1=a.s, shape2=b.s))
+# q1percent=min(qbeta(0.01, shape1=a.n, shape2=b.n), qbeta(0.01, shape1=a.s, shape2=b.s))
+#
+# toMin = function(par)
+# {
+#   return( (q99percent-qbeta(0.99, shape1=par[1], shape2=par[2]))^2+ (q1percent-qbeta(0.01, shape1=par[1], shape2=par[2]))^2)
+# }
+#
+# par=optim(c( (a.s+a.n)/2, (b.s+b.n)/2), toMin)$par
+# a.moy=par[1]
+# b.moy=par[2]
+# lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+#
+#
+#
+# Reading data ------------------------------------------------------------
+setwd(path)
+resdir <- "Res"
+if( ! file.exists(file.path(path,resdir)) )
+dir.create(file.path(path,resdir))
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=1)
+datalong$N=datalong$NT + datalong$NNT + datalong$Ne+ datalong$Nb
+resdir <- file.path(path,resdir,fileIn, sep='')
+if(oneArea)
+resdir=paste(resdir , '-OneArea',  sep='')
+if(oneYear)
+resdir=paste(resdir, '-OneYear', sep='')
+if(!file.exists(resdir)) dir.create(resdir)
+setwd(resdir)
+names(datalong)[which(names(datalong)=="DFO_STAT_AREA_CODE")]='Area'
+names(datalong)[which(names(datalong)=="soaktime.minutes.")]='soaktime'
+if(oneArea)
+datalong$Area=as.factor(rep("UniqueArea", nrow(datalong)))
+if(oneYear)
+datalong$Year=rep(1, nrow(datalong))
+summary(datalong)
+head(datalong)
+longline.data <- formatData(datalong, ne.missing=F)
+outBayesGlobal <- estimateBayes(longline.data, MEM=2, ne.missing=F, a.moy=a.moy, b.moy=b.moy, n.iter=5000,burnin=2000)
+pMGlobal <- postMean(longline.data, outBayesGlobal)
+boxPlot_LL(longline.data, outBayesGlobal, YlimT=c(0, 4e-3),  YlimNT=c(0, 2.5e-2), file.out=paste(fileIn, '.pdf', sep=''))
+out = postSummary(longline.data, outBayesGlobal)
+write.table(file=paste('MEM-', fileIn, "_lambdaTarget.csv", sep=''), out$lambdaT)
+write.table(file=paste('MEM-',fileIn, "_lambdaNonTarget.csv", sep=''), out$lambdaNT)
+write.table(file=paste('MEM-',fileIn, "_pe.csv", sep=''), out$pe)
+# Row CPUE ----------------------------------------------------------------
+CPUE <-CLonglineData.CPUE (longline.data)
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''),  x=CPUE)
+rm(list=ls())
+path <- '/media/metienne_h/Recherche/CPUE/RockFish/YellowEyeNorRCA_03-09'
+fileIn="DataPropreLongline_noRCA"
+fileIn="insideLL_03_09_noRCA_noDROP_OFFs_noSNARLSs"
+oneArea=F
+oneYear=F
+####library
+library('prettyR')
+library('xtable')
+library('longline')
+# #### data importation and verification
+# ###parametres de phma_south
+# m=0.5884
+# sigma=0.0013
+# sigma2=sigma^2
+# a.n=((1-m)*m/sigma2 -1)*m
+# b.n=(1-m)/m * a.n
+#
+# ###parametres de phma_north
+# m=0.5146
+# sigma=0.0014
+# sigma2=sigma^2
+# a.s=((1-m)*m/sigma2 -1)*m
+# b.s=(1-m)/m * a.s
+#  abc <-seq(0,1, length.out=100)
+#  plot(abc, dbeta(abc,shape1=a.s, shape2=b.s),  "l", col=3)
+#  lines(abc, dbeta(abc,shape1=a.n, shape2=b.n),  col=2)
+# # echan1 = rbeta(1000,, shape1=a.n, shape2=b.n)
+# # echan2 = rbeta(1000,, shape1=a.s, shape2=b.s)
+# # m=mean(c(echan1, echan2))
+# # sigma=sd(c(echan1, echan2))
+# # sigma2=sigma^2
+# # a.moy=round(((1-m)*m/sigma2 -1)*m)
+# # b.moy=round((1-m)/m * a.moy)
+# # lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+# ## Find the rihgt quantiles
+# q99percent=max(qbeta(0.99, shape1=a.n, shape2=b.n), qbeta(0.99, shape1=a.s, shape2=b.s))
+# q1percent=min(qbeta(0.01, shape1=a.n, shape2=b.n), qbeta(0.01, shape1=a.s, shape2=b.s))
+#
+# toMin = function(par)
+# {
+#   return( (q99percent-qbeta(0.99, shape1=par[1], shape2=par[2]))^2+ (q1percent-qbeta(0.01, shape1=par[1], shape2=par[2]))^2)
+# }
+#
+# par=optim(c( (a.s+a.n)/2, (b.s+b.n)/2), toMin)$par
+# a.moy=par[1]
+# b.moy=par[2]
+# lines(abc, dbeta(abc,shape1=a.moy, shape2=b.moy),  col=4)
+#
+#
+#
+# Reading data ------------------------------------------------------------
+setwd(path)
+resdir <- "Res"
+if( ! file.exists(file.path(path,resdir)) )
+dir.create(file.path(path,resdir))
+datalong = read.table(paste(fileIn,'.csv', sep=''), sep=";", header=T, skip=1)
+datalong$N=datalong$NT + datalong$NNT + datalong$Ne+ datalong$Nb
+resdir <- file.path(path,resdir,fileIn, sep='')
+if(oneArea)
+resdir=paste(resdir , '-OneArea',  sep='')
+if(oneYear)
+resdir=paste(resdir, '-OneYear', sep='')
+if(!file.exists(resdir)) dir.create(resdir)
+setwd(resdir)
+names(datalong)[which(names(datalong)=="DFO_STAT_AREA_CODE")]='Area'
+names(datalong)[which(names(datalong)=="soaktime.minutes.")]='soaktime'
+if(oneArea)
+datalong$Area=as.factor(rep("UniqueArea", nrow(datalong)))
+if(oneYear)
+datalong$Year=rep(1, nrow(datalong))
+summary(datalong)
+head(datalong)
+longline.data <- formatData(datalong, ne.missing=F)
+outBayesGlobal <- estimateBayes(longline.data, MEM=1, ne.missing=F, a.moy=a.moy, b.moy=b.moy, n.iter=5000,burnin=2000)
+pMGlobal <- postMean(longline.data, outBayesGlobal)
+boxPlot_LL(longline.data, outBayesGlobal, YlimT=c(0, 4e-3),  YlimNT=c(0, 2.5e-2), file.out=paste(fileIn, '.pdf', sep=''))
+out = postSummary(longline.data, outBayesGlobal)
+write.table(file=paste('MEM-', fileIn, "_lambdaTarget.csv", sep=''), out$lambdaT)
+write.table(file=paste('MEM-',fileIn, "_lambdaNonTarget.csv", sep=''), out$lambdaNT)
+write.table(file=paste('MEM-',fileIn, "_pe.csv", sep=''), out$pe)
+# Row CPUE ----------------------------------------------------------------
+CPUE <-CLonglineData.CPUE (longline.data)
+write.table(file=paste('CPUE-', fileIn, ".csv", sep=''),  x=CPUE)
+datalong[datalong$Year==2004,]
+datalong[datalong$Year==2004& datalong$Area==12,]
+outBayesGlobal <- estimateBayes(longline.data, MEM=1, ne.missing=F, a.moy=a.moy, b.moy=b.moy, n.iter=10000,burnin=5000)
+postMean(longline.data, outBayesGlobal)
+datalong[datalong$Year==2004& datalong$Area==12,]
+datalong$soaktime
+boxPlot_LL(longline.data, outBayesGlobal, YlimT=c(0, 4e-3),  YlimNT=c(0, 2.5e-2), file.out=paste(fileIn, '.pdf', sep=''))
+postMean(longline.data, outBayesGlobal)
+outBayesGlobal
+outBayesGlobal
+outBayesGlobal[[1]]
+outBayesGlobal[[1]][2,]
+outBayesGlobal[[1]][,2]
+dima(outBayesGlobal[[1]])
+dim(outBayesGlobal[[1]])
+outBayesGlobal[[1]][[2]]
+class(outBayesGlobal[[1]])
+outBayesGlobal[[1]][10001]
+outBayesGlobal[[1]][10002]
+outBayesGlobal[[1]][10001:20000]
+plot(10001:20000,outBayesGlobal[[1]][10001:20000])
+plot(10001:20000,outBayesGlobal[[1]][10001:20000],"l")

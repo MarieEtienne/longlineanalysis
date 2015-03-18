@@ -1,0 +1,48 @@
+var
+#data
+	NArea, NData, NYear, S[NData],  N[NData], Catch[NData, 3], # Catch[,1] = T,Catch[,2] = NT,Catch[,3] = Other = Empty + baited,
+	 Year[NData], Area[NData],
+	a.moy, b.moy,
+#variable requiring initialisation
+		lambda1[NYear*NArea], lambda2[NYear*NArea],  pe,
+#variable without initialisation, deduced from the code
+	lambda[NYear*NArea], p.baited[NData], pcatch1[NYear*NArea], pcatch2[NYear*NArea], p[NData, 3];
+
+model {
+/* prior density */
+pe ~ dbeta(a.moy,b.moy) ;
+
+log.mu1 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+log.mu2 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	
+for( y in 1:NYear){
+	log.lambda1Y[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	log.lambda2Y[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	}
+for( f in 1:NFact){
+	 log.lambda1F[f] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	 log.lambda2F[f] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	}
+
+for( y in 1:NYear){
+	for( f in 1:NFact){
+		pe[(f-1)*NYear + y] ~ dbeta(1,1) ;
+		lambda1[ (f-1)*NYear + y ] <- exp(log.mu1+log.lambda1Y[y]+log.lambda1F[f]);
+		lambda2[ (f-1)*NYear + y ] <- exp(log.mu2+log.lambda2Y[y]+log.lambda2F[f]);
+		lambda[ (f-1)*NYear + y ]  <- lambda1[ (f-1)*NYear + y ] + lambda2[ (f-1)*NYear + y ];
+        	pcatch1[ (f-1)*NYear + y ] <- lambda1[ (f-1)*NYear + y ] * (1 -pe)/ lambda[ (f-1)*NYear + y  ];
+        	pcatch2[ (f-1)*NYear + y ] <- lambda2[ (f-1)*NYear + y  ] * (1 -pe) / lambda[ (f-1)*NYear + y  ];
+    }
+}
+ 
+
+for(j in 1:NData)
+	{
+		p.baited[j] <- exp(-lambda[( Area[j]-1)*NYear + Year[j] ]* S[j] );
+		p[j,1] <- (1-p.baited[j])*pcatch1[( Area[j]-1)*NYear + Year[j]];
+		p[j,2] <- (1-p.baited[j])*pcatch2[( Area[j]-1)*NYear + Year[j]];
+		p[j,3] <- (1-p.baited[j])*pe + p.baited[j];
+		Catch[j,] ~ dmulti(p[j,], N[j]);
+	}
+
+}

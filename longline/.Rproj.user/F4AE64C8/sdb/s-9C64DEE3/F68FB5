@@ -1,0 +1,17 @@
+{
+    "contents" : "#' @name longlineEx\n#' @title Example for longline data\n#' @description This data set shows an example of a longline experiment\n#' @docType data\n#' @usage longlineEx\n#' @author Marie-Pierre Etienne\nNULL",
+    "created" : 1426663941856.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3400599622",
+    "id" : "F68FB5",
+    "lastKnownWriteTime" : 1426665195,
+    "path" : "~/EnCours/PackageDvp/Svn/longline/R/longlineEx.R",
+    "project_path" : "R/longlineEx.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

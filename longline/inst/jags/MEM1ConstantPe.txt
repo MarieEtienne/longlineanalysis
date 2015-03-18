@@ -1,0 +1,40 @@
+var
+#data
+	NData, NFact1, S[NData],  N[NData], Catch[NData, 4], Fact1[NData], a.moy, b.moy,
+#variable requiring initialisation
+	log.lambda1F1[NFact1], log.lambda2F1[NFact1], pe,
+#variable without initialisation, deduced from the code
+	lambda1[NFact1], lambda2[NFact1],  
+	lambda[NFact1], p.baited[NData], pcatch1[NFact1], pcatch2[NFact1],  pempty[NFact1], p[NData, 4];
+
+model {
+/* prior density */
+pe ~ dbeta(a.moy,b.moy) ;
+
+log.mu1 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+log.mu2 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	
+for( y in 1:NFact1){
+	log.lambda1F1[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	log.lambda2F1[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	}
+for( y in 1:NFact1){
+		lambda1[y] <- exp(log.mu1+log.lambda1F1[y]);
+		lambda2[y] <- exp(log.mu2+log.lambda2F1[y]);
+		lambda[y]  <- lambda1[y] + lambda2[y];
+        	pcatch1[y] <- lambda1[y] / lambda[y];
+        	pcatch2[y] <- lambda2[y] * (1 -pe) / lambda[y];
+        	pempty[y]  <- lambda2[y]/lambda[y] * pe ;
+    
+}
+ 
+for(j in 1:NData){
+	p.baited[j] <- exp(-lambda[Fact1[j] ]* S[j] );
+	p[j,1] <- p.baited[j];
+	p[j,2] <- (1-p.baited[j])*pcatch1[Fact1[j]];
+	p[j,3] <- (1-p.baited[j])*pcatch2[Fact1[j]];
+	p[j,4] <- (1-p.baited[j])*pempty[Fact1[j]];
+	Catch[j,] ~ dmulti(p[j,], N[j]);
+}
+
+}

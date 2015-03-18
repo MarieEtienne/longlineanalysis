@@ -1,0 +1,51 @@
+var
+#data
+	NFact2, NData, NFact1, S[NData],  N[NData], Catch[NData, 4], Fact1[NData], Fact2[NData], 
+a.moy, b.moy,
+#variable requiring initialisation
+	log.lambda1F1[NFact1], log.lambda2F1[NFact1], log.lambda1F2[NFact2], log.lambda2F2[NFact2], pe,
+#variable without initialisation, deduced from the code
+	lambda1[NFact1*NFact2], lambda2[NFact1*NFact2],  
+	lambda[NFact1*NFact2], p.baited[NData], pcatch1[NFact1*NFact2], pcatch2[NFact1*NFact2],  pempty[NFact1*NFact2], p[NData, 4];
+
+model {
+/* prior density */
+pe ~ dbeta(a.moy,b.moy) ;
+
+log.mu1 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+log.mu2 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	
+for( y in 1:NFact1){
+	log.lambda1F1[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	log.lambda2F1[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	}
+for( f in 1:NFact2){
+	 log.lambda1F2[f] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	 log.lambda2F2[f] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	}
+
+for( y in 1:NFact1){
+	for( f in 1:NFact2){
+		lambda1[ (f-1)*NFact1 + y ] <- exp(log.mu1+log.lambda1F1[y]+log.lambda1F2[f]);
+		lambda2[ (f-1)*NFact1 + y ] <- exp(log.mu2+log.lambda2F1[y]+log.lambda2F2[f]);
+		lambda[ (f-1)*NFact1 + y ]  <- lambda1[ (f-1)*NFact1 + y ] + lambda2[ (f-1)*NFact1 + y ];
+        	pcatch1[ (f-1)*NFact1 + y ] <- lambda1[ (f-1)*NFact1 + y ] / lambda[ (f-1)*NFact1 + y  ];
+        	pcatch2[ (f-1)*NFact1 + y ] <- lambda2[ (f-1)*NFact1 + y  ] * (1 -pe) / lambda[ (f-1)*NFact1 + y  ];
+          pempty[ (f-1)*NFact1 + y ]  <-  lambda2[ (f-1)*NFact1 + y  ]/lambda[ (f-1)*NFact1 + y ]  * pe ;
+
+    }
+}
+ 
+
+for(j in 1:NData)
+	{
+		p.baited[j] <- exp(-lambda[( Fact2[j]-1)*NFact1 + Fact1[j] ]* S[j] );
+	p[j,1] <- p.baited[j];
+	p[j,2] <- (1-p.baited[j])*pcatch1[(Fact2[j]-1)*NFact1 + Fact1[j]];
+	p[j,3] <- (1-p.baited[j])*pcatch2[(Fact2[j]-1)*NFact1 + Fact1[j]];
+	p[j,4] <- (1-p.baited[j])*pempty[(Fact2[j]-1)*NFact1 + Fact1[j]];
+
+  Catch[j,] ~ dmulti(p[j,], N[j]);
+	}
+
+}
