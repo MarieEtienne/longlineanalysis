@@ -11,12 +11,12 @@ model {
 /* prior density */
 pe ~ dbeta(a.moy,b.moy) ;
 
-log.mu1 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
-log.mu2 ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+log.mu1 ~ dnorm(0, tau.lambda);
+log.mu2 ~ dnorm(0, tau.lambda);
 	
 for( y in 1:NFact1){
-	log.lambda1F1[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
-	log.lambda2F1[y] ~ dnorm(-1/(2*tau.lambda*tau.lambda), tau.lambda);
+	log.lambda1F1[y] ~ dnorm(0, tau.lambda);
+	log.lambda2F1[y] ~ dnorm(0, tau.lambda);
 	}
 for( y in 1:NFact1){
 		lambda1[y] <- exp(log.mu1+log.lambda1F1[y]);

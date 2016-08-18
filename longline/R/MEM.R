@@ -17,7 +17,7 @@
 #' @param sameS, should all soaktime be considered as equal ?
 #' 
 #' @export
-#' @return a vetor estimates of hat.lmabdaT, hat.lambda.NT, hat.pT, hat.pNT
+#' @return a vetor estimates of hat.lambdaT, hat.lambda.NT, hat.pT, hat.pNT
 #
 MEM.MLE <- function(llData, MEM=1, sameS=T) 
 {
@@ -56,7 +56,7 @@ MEM.MLE.YA <- function(subdata, MEM=1)
     stop("Argument 1 of function MEM.MLE is not of class longline")
   } else if( sum( subdata$NT+subdata$NNT) == 0)
   {
-    return(list( lambda = c( , NA,NA, NA,NA ) ) ) ## no possible estimation
+    return(list( lambda = c( NA,NA, NA,NA ) ) ) ## no possible estimation
   } else if(subdata$sameS)     
   {
     ne.missing <- (sum(is.na(subdata$Ne))==subdata$NData)
