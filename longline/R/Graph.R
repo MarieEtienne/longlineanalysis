@@ -10,10 +10,17 @@
 #' @export
 #' @return no return value
 
-PostIndicesPlot<- function(llData, outSamples, who="TF1", fileOut="plot.pdf", yLim=NULL, xLab=NULL){
+PostIndicesPlot<- function(llData, outSamples, who="TF1", fileOut="plot.pdf", yLim=NULL, xLab=NULL, 
+                           complete.missing.year=F){
 
+  if(complete.missing.year){
+    ypres <- unique(as.numeric(as.character(llData$Fact1)))
+    miss <- setdiff(min(ypres  ):max(ypres), ypres)
+  }
   if(who=="TF1"){
   out <- exp(sweep(matrix(outSamples$log.lambda1F1[,,], ncol=dim(outSamples$log.lambda1F1)[1], byrow=T), MARGIN = 1, FUN = "+", STATS = as.numeric(outSamples$log.mu1)))
+
+  xLab = levels(llData$Fact1)
   } else {
     if ( who=="NTF1")
     {
@@ -21,7 +28,7 @@ PostIndicesPlot<- function(llData, outSamples, who="TF1", fileOut="plot.pdf", yL
       xLab = levels(llData$Fact1)
     } else {
        if( who %in% names(outSamples)){
-         out <- matrix(outSamples[[who]][,,], , ncol=dim(outSamples[[who]])[1], byrow=T)
+         out <- matrix(outSamples[[who]][,,], ncol=dim(outSamples[[who]])[1], byrow=T)
          xLab = levels(llData$Fact1)
        } else {
            cat(paste0(who, " is not a valid name for posterior plots. Possible values are ", names(outSamples)," \n"))
@@ -29,14 +36,25 @@ PostIndicesPlot<- function(llData, outSamples, who="TF1", fileOut="plot.pdf", yL
     }
   }
   yLim <- range(c(yLim, range(out)))
-    out2 <- data.frame(index=as.numeric(out), 
+  out2 <- data.frame(index=as.numeric(out), 
                                Fact1=as.factor(rep(1:dim(out)[2], each = dim(out)[1])))
+  out2$Fact1 <- levels(llData$Fact1)[out2$Fact1]
     
-    p <- ggplot(out2, aes(x=Fact1, y=index))
+  if(complete.missing.year){
+    out2 <- rbind(out2, data.frame(Fact1=as.character(miss), index=rep(NA, length(miss))))
+    out2$Fact1 <- as.factor(as.numeric(out2$Fact1))
+    xLab = levels(out2$Fact1)
+  }
+  
+  p <- ggplot(out2, aes(x=Fact1, y=index))
     p <- p + geom_boxplot() + scale_y_continuous(label=scientific, limits=yLim) + scale_x_discrete(labels=xLab  )
     p
   print(fileOut)
-  ggsave(plot = p, filename = fileOut,, width = 20, height =15, units = "cm", dpi = 300)
+  ggsave(plot = p, filename = fileOut,width = 20, height =15, units = "cm", dpi = 300)
+  if(complete.missing.year){
+   out2 <- out2[!is.na(out2$index),]
+   levels(out2$Fact1) <- droplevels(out2$Fact1)
+     }
   return(out2)
 }
 

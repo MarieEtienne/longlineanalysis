@@ -12,7 +12,7 @@
 #' @return a list of abundance indice, and write some figures and tables in the directory specified in pathFile
 #
 
-RunBayesEstimation <- function(llData, MEM=1, nIter =2000, burnin = 500, filePath="", parPrior=c(1,1), peConst =F, tau.lambda=0.5)
+RunBayesEstimation <- function(llData, MEM=1, nIter =2000, burnin = 500, filePath="", parPrior=c(1,1), peConst =F, tau.lambda=0.5, complete.missing.year=F)
 {
   dataName <- as.list(sys.call() )$llData
   cat(paste0('Now running indices estimation on ', dataName, '\n')) 
@@ -27,13 +27,16 @@ RunBayesEstimation <- function(llData, MEM=1, nIter =2000, burnin = 500, filePat
     modelName <- paste0(modelName,'ConstantPe')
   
   modelName <- paste0(modelName,'.txt')
-     
-print(modelName)     
+  print(modelName)     
+  
   jagsRun <- jags.model(file=system.file(package='longline', 'jags', modelName), data = data.list, inits = init.list, n.adapt = 100, n.chains = 1)
   update(jagsRun, burnin)
   out.samples <- jags.samples(jagsRun, c("log.mu1","log.mu2", "log.lambda1F1", "log.lambda2F1", "pe"), n.iter=nIter)
 
-postIndices <- PostIndicesPlot(llData, out.samples, who="TF1", yLim = range(c(0)),xLab = levels(llData$Fact1), fileOut = file.path(filePath, paste0(dataName, '-MEM=',MEM, 'peConst=', peConst, '.pdf')) )
+postIndices <- PostIndicesPlot(llData, out.samples, who="TF1", yLim = range(c(0)),
+                               xLab = levels(llData$Fact1), 
+                               fileOut = file.path(filePath, paste0(dataName, '-MEM=',MEM, 'peConst=', peConst, '.pdf')), 
+                               complete.missing.year=T)
 
   ### save indices
   res <- Reduce('rbind',tapply(postIndices$index, postIndices$Fact1, 
